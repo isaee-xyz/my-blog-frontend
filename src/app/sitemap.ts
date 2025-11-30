@@ -4,7 +4,7 @@ const BASE_URL = 'https://howtohelp.in';
 
 async function getArticles() {
     try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_STRAPI_API_URL}/api/articles?fields[0]=slug&fields[1]=publishedAt&pagination[pageSize]=1000`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_STRAPI_API_URL}/api/articles?fields[0]=slug&fields[1]=publishedAt&pagination[pageSize]=5000`, {
             next: { revalidate: 60 },
         });
         const data = await res.json();
@@ -17,7 +17,7 @@ async function getArticles() {
 
 async function getCategories() {
     try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_STRAPI_API_URL}/api/categories?fields[0]=slug&pagination[pageSize]=1000`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_STRAPI_API_URL}/api/categories?fields[0]=slug&pagination[pageSize]=5000`, {
             next: { revalidate: 60 },
         });
         const data = await res.json();
