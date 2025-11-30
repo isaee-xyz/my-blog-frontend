@@ -1,34 +1,39 @@
 import Link from "next/link";
+import Layout from "../components/Layout";
+import SketchyButton from "../components/SketchyButton";
+
+interface Category {
+  id: number;
+  documentId: string;
+  name: string;
+  slug: string;
+  color: string;
+  icon: string;
+}
 
 interface Article {
   id: number;
-  attributes: {
-    title: string;
-    description: string;
-    content: string;
-    publishedAt: string;
-    slug: string;
-  };
+  documentId: string;
+  title: string;
+  description: string;
+  excerpt: string;
+  content: string;
+  publishedAt: string;
+  slug: string;
+  readTime: number;
+  category?: Category;
 }
 
 interface StrapiResponse {
   data: Article[];
-  meta?: {
-    pagination: {
-      page: number;
-      pageSize: number;
-      pageCount: number;
-      total: number;
-    };
-  };
 }
 
 async function getArticles(): Promise<StrapiResponse> {
   try {
     const res = await fetch(
-      `${process.env.NEXT_PUBLIC_STRAPI_API_URL}/api/articles?populate=*&sort=publishedAt:desc`,
+      `${process.env.NEXT_PUBLIC_STRAPI_API_URL}/api/articles?populate[0]=category&sort=publishedAt:desc&pagination[limit]=5`,
       {
-        next: { revalidate: 60 }, // ISR: revalidate every 60 seconds
+        next: { revalidate: 60 },
       }
     );
 
@@ -37,155 +42,174 @@ async function getArticles(): Promise<StrapiResponse> {
       return { data: [] };
     }
 
-    return res.json();
+    const data = await res.json();
+    console.log(`Fetched ${data.data?.length} articles`);
+    return data;
   } catch (error) {
     console.error("Error fetching articles:", error);
     return { data: [] };
   }
 }
 
+const WORKSHOP_APPROACH = [
+  {
+    title: "Early Age Education",
+    desc: "We believe in catching them young. By engaging students in their formative years, we instill a lifelong commitment to proactive citizenship."
+  },
+  {
+    title: "School-Based Workshops",
+    desc: "We bring impactful 6-hour workshops directly to classrooms, making vital knowledge accessible to all students."
+  },
+  {
+    title: "Comprehensive Curriculum",
+    desc: "Covering crucial topics from health and civic responsibility to environmental sustainability and personal safety."
+  },
+  {
+    title: "Actionable Knowledge",
+    desc: "We focus on practical skills and real-world applications, empowering students to take meaningful action."
+  },
+  {
+    title: "Holistic Development",
+    desc: "We foster a sense of responsibility towards oneself, society, and nature, encouraging students to become well-rounded individuals."
+  }
+];
+
 export default async function Home() {
   const { data: articles } = await getArticles();
+  const featuredPost = articles[0];
+  const smallPosts = articles.slice(1, 5);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-gray-900 dark:to-gray-800">
-      {/* Header */}
-      <header className="border-b border-slate-200 dark:border-gray-700 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-6">
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            HowToHelp Blog
+    <Layout>
+      {/* Hero Section */}
+      <section className="relative bg-paper py-20 px-6 border-b-2 border-ink/10 overflow-hidden">
+        {/* Abstract Background Shapes */}
+        <div className="absolute top-10 right-10 w-32 h-32 bg-secondary/20 rounded-full blur-xl animate-pulse"></div>
+        <div className="absolute bottom-10 left-10 w-48 h-48 bg-primary/20 rounded-full blur-xl"></div>
+
+        <div className="max-w-4xl mx-auto text-center space-y-8 relative z-10">
+          <div className="inline-block bg-secondary/30 px-4 py-1 rounded-full border border-secondary text-sm font-bold tracking-wide uppercase mb-2">
+            Empowering Youth • Transforming Communities
+          </div>
+          <h1 className="text-5xl md:text-7xl font-bold leading-tight text-ink">
+            Planting Seeds of <span className="text-primary underline decoration-wavy decoration-secondary">Change</span>
           </h1>
-          <p className="text-slate-600 dark:text-gray-400 mt-1">
-            Guides and resources to make a difference
+          <p className="text-2xl md:text-3xl text-ink/80 max-w-2xl mx-auto font-medium">
+            We believe in catching them young. Instilling a lifelong commitment to proactive citizenship.
           </p>
         </div>
-      </header>
+      </section>
 
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-12">
-        {articles.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-900/30 mb-4">
-              <svg
-                className="w-8 h-8 text-blue-600 dark:text-blue-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-                />
-              </svg>
-            </div>
-            <h2 className="text-2xl font-semibold text-slate-800 dark:text-gray-200 mb-2">
-              No Articles Yet
-            </h2>
-            <p className="text-slate-600 dark:text-gray-400 mb-4">
-              Get started by creating your first article in the Strapi admin panel.
-            </p>
-            <a
-              href={`${process.env.NEXT_PUBLIC_STRAPI_API_URL}/admin`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
-            >
-              Go to Admin Panel
-              <svg
-                className="w-4 h-4 ml-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
-                />
-              </svg>
-            </a>
+      {/* Our Approach Section */}
+      <section className="py-20 px-6 bg-white">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold mb-4 text-ink">Our Approach</h2>
+            <div className="w-24 h-2 bg-primary mx-auto rounded-full"></div>
           </div>
-        ) : (
-          <>
-            <h2 className="text-2xl font-bold text-slate-800 dark:text-gray-200 mb-8">
-              Latest Articles
-            </h2>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-              {articles.map((article) => (
-                <article
-                  key={article.id}
-                  className="group bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden border border-slate-200 dark:border-gray-700"
-                >
-                  <div className="p-6">
-                    <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-gray-400 mb-3">
-                      <svg
-                        className="w-4 h-4"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                        />
-                      </svg>
-                      {new Date(article.attributes.publishedAt).toLocaleDateString(
-                        "en-US",
-                        {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        }
-                      )}
-                    </div>
 
-                    <h3 className="text-xl font-semibold text-slate-900 dark:text-gray-100 mb-3 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors line-clamp-2">
-                      {article.attributes.title}
-                    </h3>
-
-                    <p className="text-slate-600 dark:text-gray-400 mb-4 line-clamp-3">
-                      {article.attributes.description}
-                    </p>
-
-                    <Link
-                      href={`/articles/${article.attributes.slug || article.id}`}
-                      className="inline-flex items-center text-blue-600 dark:text-blue-400 font-medium hover:gap-2 transition-all"
-                    >
-                      Read more
-                      <svg
-                        className="w-4 h-4 ml-1 group-hover:translate-x-1 transition-transform"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M9 5l7 7-7 7"
-                        />
-                      </svg>
-                    </Link>
-                  </div>
-                </article>
-              ))}
-            </div>
-          </>
-        )}
-      </main>
-
-      {/* Footer */}
-      <footer className="border-t border-slate-200 dark:border-gray-700 bg-white/50 dark:bg-gray-900/50 backdrop-blur-sm mt-20">
-        <div className="container mx-auto px-4 py-6 text-center text-slate-600 dark:text-gray-400">
-          <p>© {new Date().getFullYear()} HowToHelp. All rights reserved.</p>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {WORKSHOP_APPROACH.map((item, index) => (
+              <div key={index} className="bg-paper p-8 border-2 border-ink rounded-2xl shadow-[shadow-sketch] hover:-translate-y-1 hover:shadow-[shadow-sketchHover] transition-all group">
+                <div className="w-14 h-14 bg-white rounded-xl border-2 border-ink flex items-center justify-center mb-6 text-2xl font-bold text-primary shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] group-hover:scale-110 transition-transform">
+                  {index + 1}
+                </div>
+                <h3 className="text-2xl font-bold mb-3 group-hover:text-primary transition-colors text-ink">{item.title}</h3>
+                <p className="text-lg leading-relaxed opacity-80 text-ink">{item.desc}</p>
+              </div>
+            ))}
+          </div>
         </div>
-      </footer>
-    </div>
+      </section>
+
+      {/* Blogs Section */}
+      <section className="py-20 px-6 bg-paper border-t-2 border-ink/10">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-4">
+            <div>
+              <h2 className="text-4xl md:text-5xl font-bold mb-2 text-ink">Impact Stories & Guides</h2>
+              <p className="text-xl opacity-70 text-ink">Knowledge is the foundation of empowerment.</p>
+            </div>
+            <Link href="/categories">
+              <SketchyButton variant="secondary">View Library</SketchyButton>
+            </Link>
+          </div>
+
+          {articles.length > 0 ? (
+            <div className="grid lg:grid-cols-3 gap-8">
+              {/* Big Featured Post */}
+              {featuredPost && (
+                <div className="lg:col-span-2 group cursor-pointer">
+                  <Link href={`/articles/${featuredPost.slug || featuredPost.id}`}>
+                    <div className="border-2 border-ink rounded-xl overflow-hidden shadow-[shadow-sketch] h-full bg-white hover:shadow-[shadow-sketchHover] transition-all relative">
+                      <div className="absolute top-4 left-4 z-10 bg-accent text-ink px-3 py-1 rounded-md border border-ink text-sm font-bold shadow-sm uppercase tracking-wider">
+                        Featured
+                      </div>
+                      <div className="p-8">
+                        {featuredPost.category && (
+                          <span className="text-primary font-bold text-sm uppercase tracking-wider">
+                            {featuredPost.category.icon} {featuredPost.category.name}
+                          </span>
+                        )}
+                        <h3 className="text-3xl font-bold mt-2 mb-4 group-hover:text-primary transition-colors leading-tight text-ink">
+                          {featuredPost.title}
+                        </h3>
+                        <p className="text-xl opacity-80 mb-6 text-ink">
+                          {featuredPost.excerpt || featuredPost.description}
+                        </p>
+                        <div className="flex items-center gap-4 text-sm text-ink/60">
+                          <span>{featuredPost.readTime || 5} min read</span>
+                          <span>•</span>
+                          <span>{featuredPost.publishedAt ? new Date(featuredPost.publishedAt).toLocaleDateString() : ''}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </Link>
+                </div>
+              )}
+
+              {/* Small Posts List */}
+              <div className="flex flex-col gap-6">
+                {smallPosts.map((post) => (
+                  <Link href={`/articles/${post.slug || post.id}`} key={post.id} className="flex-1 group">
+                    <div className="bg-white border-2 border-ink rounded-xl p-5 shadow-[shadow-sketch] hover:shadow-[shadow-sketchHover] hover:translate-x-1 transition-all h-full flex flex-col justify-center border-l-8 border-l-secondary">
+                      {post.category && (
+                        <span className="text-xs font-bold text-ink/50 uppercase mb-1">
+                          {post.category.icon} {post.category.name}
+                        </span>
+                      )}
+                      <h4 className="text-xl font-bold line-clamp-2 group-hover:text-primary transition-colors text-ink">
+                        {post.title}
+                      </h4>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-center py-12 text-ink/60">
+              <p className="text-xl">No articles yet. Check back soon!</p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Call to Action */}
+      <section className="py-24 px-6 bg-primary text-white border-t-2 border-ink relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle, #fff 2px, transparent 2px)', backgroundSize: '30px 30px' }}></div>
+
+        <div className="max-w-4xl mx-auto text-center relative z-10">
+          <div className="inline-block p-4 bg-white/20 rounded-full mb-6 backdrop-blur-sm border border-white/30">
+            <span className="text-5xl">❤️</span>
+          </div>
+          <h2 className="text-4xl md:text-6xl font-bold mb-6 drop-shadow-md">
+            Ready to Make a Difference?
+          </h2>
+          <p className="text-2xl mb-10 font-medium max-w-2xl mx-auto opacity-90">
+            Whether you want to bring a workshop to your school or volunteer your time, we'd love to hear from you.
+          </p>
+        </div>
+      </section>
+    </Layout>
   );
 }
-
