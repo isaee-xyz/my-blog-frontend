@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://howtohelp.in/sitemap.xml
