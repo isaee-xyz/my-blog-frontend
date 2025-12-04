@@ -1,0 +1,14 @@
+# HowToHelp.in
+
+> Empowering Youth, Transforming Communities & Lives
+
+HowToHelp is a non-profit initiative dedicated to empowering youth and transforming communities through education, civic responsibility, and actionable kindness.
+
+## Content
+- [Articles](https://howtohelp.in/sitemap.xml)
+- [Topics](https://howtohelp.in/categories)
+
+## Organization
+- Name: HowToHelp
+- Mission: To catch them young and instill a lifelong commitment to proactive citizenship.
+- Website: https://howtohelp.in
